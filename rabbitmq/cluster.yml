@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: xcluster
+  namespace: rabbitmq
+spec:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 1
+      memory: 500Mi
+    limits:
+      cpu: 2
+      memory: 2Gi
+  rabbitmq:
+    additionalConfig: |
+      loopback_users.guest = false
+      listeners.tcp.default = 5672
+      cluster_formation.peer_discovery_backend  = rabbitmq_peer_discovery_k8s
+      cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+      cluster_formation.k8s.address_type = hostname
+      cluster_formation.node_cleanup.only_log_warning = true
+    additionalPlugins:
+      - rabbitmq_federation
+      - rabbitmq_management
+      - rabbitmq_peer_discovery_k8s
+  override:
+    statefulSet:
+      spec:
+        podManagementPolicy: "OrderedReady"
+
+
