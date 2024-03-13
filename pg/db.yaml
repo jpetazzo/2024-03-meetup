@@ -20,6 +20,15 @@ metadata:
   namespace: db
 spec:
   instances: 2
+  postgresql:
+    pg_hba:
+      - local     all          all                            trust
+      - host      replication  postgres          all          trust
+      - host      replication  streaming_replica 0.0.0.0/0    trust
+      - host      all          all               0.0.0.0/0    trust
+      - local     replication  standby                        trust
+      - hostssl   replication  standby      all               md5
+      - host      all          all          all               md5
   bootstrap:
     initdb: #  Setup the database.
       database: messages
@@ -27,6 +36,10 @@ spec:
       encoding: UTF-8
       secret:
         name: enix-user
+      postInitApplicationSQL:
+        - create table application_numbers (i integer)
+        - insert into application_numbers (select generate_series(1,10000))
+
   # Example of rolling update strategy:
   # - unsupervised: automated update of the primary once all
   #                 replicas have been upgraded (default)
