@@ -2,6 +2,7 @@ commonLabels:
   release: promstack
 config:
   input:
+    label: random_generator
     generate:
       count: 2000000
       interval: "0.1s"

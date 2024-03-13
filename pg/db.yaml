@@ -4,6 +4,15 @@ kind: Namespace
 metadata:
   name: db
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: enix-user
+  namespace: db
+data:
+  username: ZW5peAo=
+  password: cGFzc3dvcmQK
+---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -11,7 +20,13 @@ metadata:
   namespace: db
 spec:
   instances: 2
-
+  bootstrap:
+    initdb: #  Setup the database.
+      database: messages
+      owner: enix
+      encoding: UTF-8
+      secret:
+        name: enix-user
   # Example of rolling update strategy:
   # - unsupervised: automated update of the primary once all
   #                 replicas have been upgraded (default)
