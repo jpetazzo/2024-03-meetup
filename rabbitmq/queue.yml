@@ -1,0 +1,39 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: q1
+  namespace: rabbitmq
+spec:
+  name: q1
+  #type: quorum
+  autoDelete: false
+  durable: true
+  rabbitmqClusterReference:
+    name: xcluster
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Exchange
+metadata:
+  name: ex1
+  namespace: rabbitmq
+spec:
+  name: ex1
+  type: direct
+  autoDelete: false
+  durable: true
+  rabbitmqClusterReference:
+    name: xcluster
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Binding
+metadata:
+  name: bind1
+  namespace: rabbitmq
+spec:
+  source: ex1
+  destination: q1
+  destinationType: queue
+  routingKey: "rkey"
+  rabbitmqClusterReference:
+    name: xcluster
+

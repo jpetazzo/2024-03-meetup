@@ -1,0 +1,28 @@
+commonLabels:
+  release: promstack
+config:
+  input:
+    generate:
+      count: 2000000
+      interval: "0.1s"
+      mapping: |
+        root.received_at = now()
+        root.message = random_int().string() + " - Enix bot"
+        root.id = uuid_v4()
+        root.host = hostname()
+  output:
+    amqp_0_9:
+      urls: 
+        - amqp://enix:password@xcluster.rabbitmq.svc.cluster.local:5672
+      exchange: "ex1"
+      key: "rkey"
+      metadata:
+        exclude_prefixes: []
+      max_in_flight: 100000
+  metrics:
+    prometheus:
+      add_process_metrics: true
+      add_go_metrics: true
+serviceMonitor:
+  enabled: true
+
