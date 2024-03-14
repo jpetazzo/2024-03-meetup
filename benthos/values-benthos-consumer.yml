@@ -16,20 +16,20 @@ config:
         fields_mapping: |
           root.message = this.message
 
-#  output:
-#    label: "insert_db"
-#    sql_insert:
-#      driver: "postgres"
-#      dsn: postgres://[user[:password]@][netloc][:port][/dbname]
-#      table: livres
-#      columns: [title]
-#      args_mapping: root = [ this.cat.meow, this.doc.woofs[0] ] # No default (required)
-#      max_in_flight: 64
-#      batching:
-#        count: 10
-#        byte_size: 0
-#        period: ""
-#        check: ""
+  output:
+    label: insert_db
+    sql_insert:
+      driver: "postgres"
+      dsn: postgres://enix:password@db01-rw.db.svc.cluster.local/messages
+      table: messages
+      columns: [id,message,hostname]
+      args_mapping: root = [ this.id, this.message, this.hostname ] 
+      max_in_flight: 64
+      batching:
+        count: 10
+        byte_size: 0
+        period: ""
+        check: ""
 resources: 
   limits:
     cpu: 200m
