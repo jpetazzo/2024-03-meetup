@@ -1,5 +1,5 @@
-commonLabels:
-  release: promstack
+#commonLabels:
+#  release: promstack
 config:
   input:
     label: random_generator
@@ -14,7 +14,7 @@ config:
   output:
     amqp_0_9:
       urls: 
-        - amqp://enix:password@xcluster.rabbitmq.svc.cluster.local:5672
+        - amqp://enix:password@mq:5672
       exchange: "ex1"
       key: "rkey"
       metadata:

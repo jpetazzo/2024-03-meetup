@@ -1,0 +1,13 @@
+repositories:
+- name: benthos
+  url: https://benthosdev.github.io/benthos-helm-chart/
+
+releases:
+- name: benthos-producer
+  chart: benthos/benthos
+  values: [ ./values-benthos-producer.yml ]
+  version: 2.1.1
+- name: benthos-consumer
+  chart: benthos/benthos
+  values: [ ./values-benthos-consumer.yml ]
+  version: 2.1.1

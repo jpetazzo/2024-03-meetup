@@ -1,11 +1,11 @@
-commonLabels:
-  release: promstack
+#commonLabels:
+#  release: promstack
 config: 
   input:
     label: consumer_input_rmq
     amqp_0_9:
       urls: 
-        - amqp://enix:password@xcluster.rabbitmq.svc.cluster.local:5672/
+        - amqp://enix:password@mq:5672/
       queue: "q1"
   pipeline:
     processors:
@@ -20,7 +20,7 @@ config:
     label: insert_db
     sql_insert:
       driver: "postgres"
-      dsn: postgres://enix:password@db01-rw.db.svc.cluster.local/messages
+      dsn: postgres://enix:password@db-rw/messages
       table: messages
       columns: [id,message,hostname]
       args_mapping: root = [ this.id, this.message, this.hostname ] 
