@@ -1,0 +1,23 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: sclaer-benthos-consumer
+  namespace: benthos
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    name: benthos-consumer
+    kind: Deployment
+  pollingInterval: 30 # important for the intensity of scaling and saturate max connexion on db
+  cooldownPeriod: 10 # important for the intensity of scaling and saturate max connexion on db
+  minReplicaCount: 1
+  maxReplicaCount: 15
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: auto
+        queueName: "q1"
+        mode: QueueLength #Values: QueueLength, MessageRate
+        value: "10000"
+        host: amqp://enix:password@mq:5672/
+
