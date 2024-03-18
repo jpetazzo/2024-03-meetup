@@ -2,12 +2,31 @@ repositories:
 - name: benthos
   url: https://benthosdev.github.io/benthos-helm-chart/
 
+# Build the AMQP connection URL used in producer and consumer
+{{- $username := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/username" .Namespace) }}
+{{- $password := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/password" .Namespace) }}
+{{- $host     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/host"     .Namespace) }}
+{{- $port     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/port"     .Namespace) }}
+{{- $amqpurl  := printf "amqp://%s:%s@%s:%s/" $username $password $host $port }}
+
 releases:
 - name: benthos-producer
   chart: benthos/benthos
   values: [ ./values-benthos-producer.yml ]
   version: 2.1.1
+  set:
+  - name: config.output.amqp_0_9.urls[0]
+    value: {{ $amqpurl }}
 - name: benthos-consumer
   chart: benthos/benthos
   values: [ ./values-benthos-consumer.yml ]
   version: 2.1.1
+  set:
+  - name: config.output.sql_insert.dsn
+    value: {{ fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/db-app/uri" .Namespace) }}
+  - name: config.input.amqp_0_9.urls[0]
+    value: {{ $amqpurl }}
+
+# Note: it is mandatory to pass the namespace to helmfile!
+# E.g.:
+# helmfile sync -n prod

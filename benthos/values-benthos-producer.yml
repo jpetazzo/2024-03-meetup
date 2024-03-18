@@ -13,8 +13,8 @@ config:
         root.host = hostname()
   output:
     amqp_0_9:
-      urls: 
-        - amqp://enix:password@mq:5672
+      #urls: 
+      #  - amqp://enix:password@mq:5672/
       exchange: "ex1"
       key: "rkey"
       metadata:

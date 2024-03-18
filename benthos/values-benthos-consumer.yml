@@ -4,8 +4,8 @@ config:
   input:
     label: consumer_input_rmq
     amqp_0_9:
-      urls: 
-        - amqp://enix:password@mq:5672/
+      #urls: 
+      #  - amqp://enix:password@mq:5672/
       queue: "q1"
   pipeline:
     processors:
@@ -20,7 +20,7 @@ config:
     label: insert_db
     sql_insert:
       driver: "postgres"
-      dsn: postgres://enix:password@db-rw/messages
+      #dsn: postgres://user:password@hostname/dbname
       table: messages
       columns: [id,message,hostname]
       args_mapping: root = [ this.id, this.message, this.hostname ] 

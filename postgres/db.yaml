@@ -1,12 +1,4 @@
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: db-user
-stringData:
-  username: enix
-  password: password
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -16,12 +8,9 @@ spec:
   bootstrap:
     initdb: #  Setup the database.
       database: messages
-      owner: enix
-      secret:
-        name: db-user
       postInitApplicationSQL:
         - |
-          SET ROLE enix;
+          SET ROLE messages;
           CREATE TABLE application_numbers (i integer);
           INSERT INTO application_numbers (SELECT generate_series(1,10000));
           CREATE TABLE messages (id varchar(50), message varchar(255), hostname varchar(50));
