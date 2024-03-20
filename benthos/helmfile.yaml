@@ -8,6 +8,7 @@ repositories:
 {{- $host     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/host"     .Namespace) }}
 {{- $port     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/port"     .Namespace) }}
 {{- $amqpurl  := printf "amqp://%s:%s@%s:%s/" $username $password $host $port }}
+{{- $producer_interval     := "1s" }}
 
 releases:
 - name: benthos-producer
@@ -17,6 +18,8 @@ releases:
   set:
   - name: config.output.amqp_0_9.urls[0]
     value: {{ $amqpurl }}
+  - name: config.input.generate.interval
+    value: {{ $producer_interval }}
 - name: benthos-consumer
   chart: benthos/benthos
   values: [ ./values-benthos-consumer.yml ]
@@ -29,4 +32,4 @@ releases:
 
 # Note: it is mandatory to pass the namespace to helmfile!
 # E.g.:
-# helmfile sync -n prod
+#    prod
