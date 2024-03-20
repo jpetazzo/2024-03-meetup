@@ -1,5 +1,7 @@
 #commonLabels:
 #  release: promstack
+deployment:
+  replicaCount: 1
 config: 
   input:
     label: consumer_input_rmq
@@ -39,7 +41,7 @@ resources:
     memory: 128Mi
 
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
   maxReplicas: 15
   metrics:

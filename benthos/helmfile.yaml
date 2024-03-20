@@ -8,7 +8,14 @@ repositories:
 {{- $host     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/host"     .Namespace) }}
 {{- $port     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/port"     .Namespace) }}
 {{- $amqpurl  := printf "amqp://%s:%s@%s:%s/" $username $password $host $port }}
+
+## Producer settings
 {{- $producer_interval     := "1s" }}
+
+## Consumer settings
+{{- $autoscaling_enabled     := true }}
+{{- $consumer_replica     := "8" }}
+{{- $consumer_autoscaling_cpu     := "80" }}
 
 releases:
 - name: benthos-producer
@@ -29,6 +36,16 @@ releases:
     value: {{ fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/db-app/uri" .Namespace) }}
   - name: config.input.amqp_0_9.urls[0]
     value: {{ $amqpurl }}
+  - name: autoscaling.enabled
+    value: {{ $autoscaling_enabled }}
+  - name: deployment.replicaCount
+    value: {{ $consumer_replica }}
+  - name: autoscaling.enabled
+    value: {{ $autoscaling_enabled }}
+  - name: autoscaling.maxReplicas
+    value: {{ $consumer_replica }}
+  - name: autoscaling.metrics[0].resource.target.averageUtilization
+    value: {{ $consumer_autoscaling_cpu }}
 
 # Note: it is mandatory to pass the namespace to helmfile!
 # E.g.:
