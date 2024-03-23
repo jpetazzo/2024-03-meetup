@@ -12,30 +12,109 @@ repositories:
 
 environments:
 
-  test1:
+  demo1: # no scaling and sender set to 0.1s (10/s) then crash
     values:
-      - producer_interval: "0.1s"
-      - autoscaling_enabled: false
-      - consumer_replica: 5
+      - sender_interval: "0.001s"
+      - sender_replica: 1
+      - api_autoscaling_enabled: false
+      - api_replica: 1
+      - api_autoscaling_memory: 70
+      - consumer_autoscaling_enabled: false
+      - consumer_replica: 1 
       - consumer_autoscaling_cpu: 60
+      - keda_enabled: false
 
-  test2:
+  demo2: # manual scaling
     values:
-      - producer_interval: "0.001s"
-      - autoscaling_enabled: true
-      - consumer_replica: 10
+      - sender_interval: "0.001s"
+      - sender_replica: 3
+      - api_autoscaling_enabled: false
+      - api_replica: 5
+      - api_autoscaling_memory: 70
+      - consumer_autoscaling_enabled: false
+      - consumer_replica: 1
+      - consumer_autoscaling_cpu: 60
+      - keda_enabled: false
+
+  demo3:
+    values:
+      - sender_interval: "0.001s"
+      - sender_replica: 3
+      - api_autoscaling_enabled: true
+      - api_replica: 10
+      - api_autoscaling_memory: 70
+      - consumer_autoscaling_enabled: false
+      - consumer_replica: 1
       - consumer_autoscaling_cpu: 70
+      - keda_enabled: false
+
+  demo4:
+    values:
+      - sender_interval: "0.001s"
+      - sender_replica: 3
+      - api_autoscaling_enabled: true
+      - api_replica: 10
+      - api_autoscaling_memory: 70
+      - consumer_autoscaling_enabled: true
+      - consumer_replica: 3
+      - consumer_autoscaling_cpu: 70
+      - keda_enabled: false
+
+  demo5:
+    values:
+      - sender_interval: "0.001s"
+      - sender_replica: 3
+      - api_autoscaling_enabled: true
+      - api_replica: 10
+      - api_autoscaling_memory: 70
+      - consumer_autoscaling_enabled: false
+      - consumer_replica: 1
+      - consumer_autoscaling_cpu: 70
+      - keda_enabled: true
+
+  purge:
+    values:
+      - sender_interval: "0.001s"
+      - sender_replica: 0
+      - api_autoscaling_enabled: true
+      - api_replica: 10
+      - api_autoscaling_memory: 70
+      - consumer_autoscaling_enabled: false
+      - consumer_replica: 1
+      - consumer_autoscaling_cpu: 70
+      - keda_enabled: true
+
 
 releases:
-- name: benthos-producer
+
+- name: benthos-sender
   chart: benthos/benthos
-  values: [ ./values-benthos-producer.yml ]
+  values: [ ./values-benthos-sender.yml ]
+  version: 2.1.1
+  set:
+  - name: config.input.generate.interval
+    value: {{ .Environment.Values.sender_interval }}
+  - name: deployment.replicaCount
+    value: {{ .Environment.Values.sender_replica }}
+
+- name: benthos-api
+  chart: benthos/benthos
+  values: [ ./values-benthos-api.yml ]
   version: 2.1.1
   set:
   - name: config.output.amqp_0_9.urls[0]
     value: {{ $amqpurl }}
-  - name: config.input.generate.interval
-    value: {{ .Environment.Values.producer_interval  }}
+  - name: deployment.replicaCount
+    value: {{ .Environment.Values.api_replica }}
+  - name: autoscaling.maxReplicas
+    value: {{ .Environment.Values.consumer_replica }}
+  - name: autoscaling.enabled
+    value: {{ .Environment.Values.api_autoscaling_enabled }}
+  - name: autoscaling.maxReplicas
+    value: {{ .Environment.Values.api_replica }}
+  - name: autoscaling.metrics[0].resource.target.averageUtilization
+    value: {{ .Environment.Values.api_autoscaling_memory }}
+
 - name: benthos-consumer
   chart: benthos/benthos
   values: [ ./values-benthos-consumer.yml ]
@@ -46,13 +125,37 @@ releases:
   - name: config.input.amqp_0_9.urls[0]
     value: {{ $amqpurl }}
   - name: autoscaling.enabled
-    value: {{ .Environment.Values.autoscaling_enabled }}
+    value: {{ .Environment.Values.consumer_autoscaling_enabled }}
   - name: deployment.replicaCount
     value: {{ .Environment.Values.consumer_replica }}
   - name: autoscaling.maxReplicas
     value: {{ .Environment.Values.consumer_replica }}
   - name: autoscaling.metrics[0].resource.target.averageUtilization
     value: {{ .Environment.Values.consumer_autoscaling_cpu }}
+
+{{ if .Values.keda_enabled }}
+- name: keda-consumer
+  chart: ./chart/keda
+  set:
+  - name: triggerURI
+    value: {{ $amqpurl }}
+  - name: queueName
+    value: "q1"
+  - name: minReplicaCount
+    value: 1
+  - name: maxReplicaCount
+    value: 25
+  - name: targetName
+    value: "benthos-consumer"
+  - name: pollingInterval
+    value: 30
+  - name: cooldownPeriod
+    value: 10
+  - name: triggerMode
+    value: "QueueLength"
+  - name: triggerValue
+    value: 1000
+{{ end }}
 
 # Note: it is mandatory to pass the namespace to helmfile!
 # E.g.:

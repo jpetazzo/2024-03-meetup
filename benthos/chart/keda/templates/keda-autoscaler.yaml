@@ -1,0 +1,24 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: benthos-consumer
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    name: {{ .Values.targetName }}
+    kind: {{ .Values.targetType }}
+  pollingInterval: {{ .Values.pollingInterval }} # important for the intensity of scaling and saturate max connexion on db
+  cooldownPeriod: {{ .Values.cooldownPeriod }} # important for the intensity of scaling and saturate max connexion on db
+  minReplicaCount: {{ .Values.minReplicaCount }} 
+  maxReplicaCount: {{ .Values.maxReplicaCount }} 
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: auto
+        queueName: {{ .Values.queueName }}
+        mode: {{ .Values.triggerMode }} #Values: QueueLength, MessageRate
+        value: "{{ .Values.triggerValue }}"
+        host: {{ .Values.triggerURI }}
+        #host: amqp://enix:password@mq:5672/
+
