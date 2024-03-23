@@ -1,0 +1,80 @@
+#commonLabels:
+#  release: promstack
+config:
+  input:
+    http_server:
+      address: ":8080"
+      path: "/"
+      allowed_verbs:
+        - POST
+  pipeline:
+    processors:
+      - switch:
+        - check: '@http_server_request_path == "/api/v2/register-orders"'
+          processors:
+            # to debug headers
+            #- log:
+            #    level: INFO
+            #    message: "${! meta() }"
+            - bloblang: |
+                root = this
+                root.client_ip = meta("http_server_remote_ip").or("unknown")
+                root.user_agent = meta("http_server_user_agent").or("unknown")
+                root.received_at = now()
+            - type: jmespath
+              jmespath:
+                query: "{
+                  user_agent: user_agent,
+                  host: client_ip, 
+                  id: user.id,
+                  location: user.location,
+                  priority: priority,
+                  received_at: received_at,
+                  orders: orders[].uuid | sort(@) | join(', ', @)
+                  }"
+  output:
+    amqp_0_9:
+      #urls: 
+      #  - amqp://enix:password@mq:5672/
+      exchange: "ex1"
+      key: "rkey"
+      metadata:
+        exclude_prefixes: []
+      max_in_flight: 100000
+
+resources: 
+  limits:
+    cpu: 500m
+    memory: 700Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 15
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+metrics:
+  prometheus:
+    add_process_metrics: true
+    add_go_metrics: true
+serviceMonitor:
+  enabled: true 
+service:
+  name: http
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  protocol: TCP
+  extraPorts:
+    - name: api
+      port: 8080
+      targetPort: 8080
+      protocol: TCP 
