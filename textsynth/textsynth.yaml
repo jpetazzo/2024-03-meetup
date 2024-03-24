@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: textsynth
+  name: textsynth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: textsynth
+  template:
+    metadata:
+      labels:
+        app: textsynth
+    spec:
+      volumes:
+      - name: cache
+        hostPath:
+          path: /opt/textsynth
+          type: DirectoryOrCreate
+      containers:
+      - image: jpetazzo/textsynth
+        name: textsynth
+        volumeMounts:
+        - name: cache
+          mountPath: /opt/textsynth
+        readinessProbe:
+          httpGet:
+            port: 8020
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: textsynth
+  name: textsynth
+spec:
+  ports:
+  - name: "8020"
+    port: 8020
+    protocol: TCP
+    targetPort: 8020
+  selector:
+    app: textsynth
+  type: ClusterIP

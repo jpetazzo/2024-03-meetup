@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+
+  textsynth:
+    build: .
+    volumes:
+    - ./cache:/opt/textsynth
+    ports:
+    - 8020:8020
