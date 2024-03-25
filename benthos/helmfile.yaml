@@ -1,21 +1,15 @@
+---
 repositories:
 - name: benthos
   url: https://benthosdev.github.io/benthos-helm-chart/
 
-# Build the AMQP connection URL used in producer and consumer
-{{- $username := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/username" .Namespace) }}
-{{- $password := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/password" .Namespace) }}
-{{- $host     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/host"     .Namespace) }}
-{{- $port     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/port"     .Namespace) }}
-{{- $amqpurl  := printf "amqp://%s:%s@%s:%s/" $username $password $host $port }}
-
-
+---
 environments:
 
-  demo1: # no scaling and sender set to 0.1s (10/s) then crash
+  demo1: # no scaling and generator set to 0.1s (10/s) then crash
     values:
-      - sender_interval: "0.001s"
-      - sender_replica: 1
+      - generator_interval: "1s"
+      - generator_replica: 1
       - api_autoscaling_enabled: false
       - api_replica: 1
       - api_autoscaling_memory: 70
@@ -26,8 +20,8 @@ environments:
 
   demo2: # manual scaling
     values:
-      - sender_interval: "0.001s"
-      - sender_replica: 3
+      - generator_interval: "1s"
+      - generator_replica: 3
       - api_autoscaling_enabled: false
       - api_replica: 5
       - api_autoscaling_memory: 70
@@ -38,8 +32,8 @@ environments:
 
   demo3:
     values:
-      - sender_interval: "0.001s"
-      - sender_replica: 3
+      - generator_interval: "1s"
+      - generator_replica: 3
       - api_autoscaling_enabled: true
       - api_replica: 10
       - api_autoscaling_memory: 70
@@ -50,8 +44,8 @@ environments:
 
   demo4:
     values:
-      - sender_interval: "0.001s"
-      - sender_replica: 3
+      - generator_interval: "1s"
+      - generator_replica: 3
       - api_autoscaling_enabled: true
       - api_replica: 10
       - api_autoscaling_memory: 70
@@ -62,8 +56,8 @@ environments:
 
   demo5:
     values:
-      - sender_interval: "0.001s"
-      - sender_replica: 3
+      - generator_interval: "1s"
+      - generator_replica: 3
       - api_autoscaling_enabled: true
       - api_replica: 10
       - api_autoscaling_memory: 70
@@ -74,8 +68,8 @@ environments:
 
   purge:
     values:
-      - sender_interval: "0.001s"
-      - sender_replica: 0
+      - generator_interval: "1s"
+      - generator_replica: 0
       - api_autoscaling_enabled: true
       - api_replica: 10
       - api_autoscaling_memory: 70
@@ -84,18 +78,25 @@ environments:
       - consumer_autoscaling_cpu: 70
       - keda_enabled: true
 
+---
+# Build the AMQP connection URL used in producer and consumer
+{{- $username := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/username" .Namespace) }}
+{{- $password := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/password" .Namespace) }}
+{{- $host     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/host"     .Namespace) }}
+{{- $port     := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/port"     .Namespace) }}
+{{- $amqpurl  := printf "amqp://%s:%s@%s:%s/" $username $password $host $port }}
 
 releases:
 
-- name: benthos-sender
+- name: benthos-generator
   chart: benthos/benthos
-  values: [ ./values-benthos-sender.yml ]
+  values: [ ./values-benthos-generator.yml ]
   version: 2.1.1
   set:
   - name: config.input.generate.interval
-    value: {{ .Environment.Values.sender_interval }}
+    value: {{ .Environment.Values.generator_interval }}
   - name: deployment.replicaCount
-    value: {{ .Environment.Values.sender_replica }}
+    value: {{ .Environment.Values.generator_replica }}
 
 - name: benthos-api
   chart: benthos/benthos

@@ -2,7 +2,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: mq
-  namespace: default
   labels:
     release: promstack
 spec:
@@ -10,9 +9,9 @@ spec:
   - interval: 10s
     port: prometheus
   jobLabel: mq
-  namespaceSelector:
-    matchNames:
-    - default
+  #namespaceSelector:
+  #  matchNames:
+  #  - default
   selector:
     matchLabels:
       app.kubernetes.io/name: mq

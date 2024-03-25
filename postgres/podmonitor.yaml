@@ -2,9 +2,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   name: db
-  namespace : {{ .Release.Namespace }}
-  labels:
-    release: promstack
 spec:
   selector:
     matchLabels:

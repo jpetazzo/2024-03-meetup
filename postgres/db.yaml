@@ -1,0 +1,28 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: db
+spec:
+  instances: 2
+  bootstrap:
+    initdb: #  Setup the database.
+      database: messages
+      postInitApplicationSQL:
+        - |
+          SET ROLE messages;
+          -- CREATE TABLE application_numbers (i integer);
+          -- INSERT INTO application_numbers (SELECT generate_series(1,10000));
+          CREATE TABLE messages (
+            id SERIAL PRIMARY KEY,
+            uuid UUID,
+            city VARCHAR(50),
+            prompt TEXT,
+            completion TEXT,
+            submitted_at TIMESTAMP,
+            generated_at TIMESTAMP
+          );
+
+  # Require 1Gi of space
+  storage:
+    size: 1Gi

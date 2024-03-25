@@ -1,0 +1,35 @@
+#commonLabels:
+#  release: promstack
+config: 
+  input:
+    generate: 
+      interval: "1s"
+      mapping: |
+        let cities = ["Paris","Berlin","NewYork","Pékin"]
+        let city_id = random_int(min: 0, max: 3)
+        root.city = $cities.index($city_id)
+    processors:
+      - log:
+          level: INFO
+          fields_mapping: "root = this"
+  output:
+    http_client:
+      url: "http://benthos-api/post"
+      verb: POST
+      headers:
+        Content-Type: application/json
+
+resources: 
+  limits:
+    cpu: 1
+    memory: 100M
+  requests:
+    cpu: 0.1
+    memory: 100M
+metrics:
+  prometheus:
+    add_process_metrics: true
+    add_go_metrics: true
+serviceMonitor:
+  enabled: true
+
