@@ -26,3 +26,16 @@ spec:
   # Require 1Gi of space
   storage:
     size: 1Gi
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: db
+  labels:
+    release: promstack
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: db
+  podMetricsEndpoints:
+  - port: metrics
