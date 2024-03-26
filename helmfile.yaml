@@ -12,6 +12,12 @@ repositories:
 - name: metrics-server
   url: https://kubernetes-sigs.github.io/metrics-server/
 
+{{- $pgusername := fetchSecretValue (printf "secretref+k8s://v1/Secret/app/db-app/username") }}
+{{- $pgpassword := fetchSecretValue (printf "secretref+k8s://v1/Secret/app/db-app/password") }}
+{{- $pghost     := printf "db-ro.app.svc.cluster.local" }}
+{{- $pgport     := "5432" }}
+{{- $pgdatabase := "messages" }}
+
 releases:
 {{ if false }}
 - name: local-path-provisioner
@@ -38,6 +44,18 @@ releases:
           limits:
             cpu: 1
             memory: 1G
+        additionalDataSources:
+          - name: cnpg
+            type: postgres
+            url: {{ $pghost }}:{{ $pgport }}
+            user: {{ $pgusername }}
+            secureJsonData:
+              password: {{ $pgpassword }}
+            jsonData:
+              database: {{ $pgdatabase }}
+              sslmode: 'disable'
+              postgresVersion: 15 
+
     - prometheus:
         prometheusSpec:
           resources:

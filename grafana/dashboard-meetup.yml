@@ -2,14 +2,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name:   rabbitmq
+  name:   meetup
   namespace: prom-system
   labels:
     apps: grafana_dashboard
     grafana_dashboard: "1"
 data:
-  rabbitmq-overview.json: |-
-    {
+  meetup-overview.json: |-
+      {
         "annotations": {
           "list": [
             {
@@ -29,7 +29,6 @@ data:
         "editable": true,
         "fiscalYearStartMonth": 0,
         "graphTooltip": 0,
-        "id": 31,
         "links": [],
         "panels": [
           {
@@ -245,9 +244,9 @@ data:
                   "uid": "$datasource"
                 },
                 "editorMode": "code",
-                "expr": "count(kube_deployment_spec_replicas{namespace=\"app\"}) by (deployment)",
+                "expr": "count(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=\"app\",container=~\"textsynth|benthos|rabbitmq|postgres\"})by(container)",
                 "format": "time_series",
-                "legendFormat": "{{pod}}",
+                "legendFormat": "{{container}}",
                 "range": true,
                 "refId": "A"
               }
@@ -1175,19 +1174,173 @@ data:
             "type": "gauge"
           },
           {
-            "collapsed": false,
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
             "gridPos": {
               "h": 1,
               "w": 24,
               "x": 0,
               "y": 27
             },
-            "id": 362,
-            "panels": [],
-            "title": "Row title",
-            "type": "row"
+            "id": 367,
+            "options": {
+              "code": {
+                "language": "plaintext",
+                "showLineNumbers": false,
+                "showMiniMap": false
+              },
+              "content": "",
+              "mode": "markdown"
+            },
+            "pluginVersion": "10.4.0",
+            "title": "TravelGPT",
+            "transparent": true,
+            "type": "text"
+          },
+          {
+            "datasource": {
+              "type": "grafana-postgresql-datasource",
+              "uid": "P5DEB51107DAF1235"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "auto",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "filterable": true,
+                  "inspect": false
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "city"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 101
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "prompt"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 302
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "submitted_at"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 170
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "generated_at"
+                  },
+                  "properties": [
+                    {
+                      "id": "custom.width",
+                      "value": 196
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 24,
+              "x": 0,
+              "y": 28
+            },
+            "id": 366,
+            "options": {
+              "cellHeight": "sm",
+              "footer": {
+                "countRows": false,
+                "enablePagination": false,
+                "fields": "",
+                "reducer": [
+                  "sum"
+                ],
+                "show": false
+              },
+              "showHeader": true,
+              "sortBy": []
+            },
+            "pluginVersion": "10.4.0",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "grafana-postgresql-datasource",
+                  "uid": "P5DEB51107DAF1235"
+                },
+                "editorMode": "code",
+                "format": "table",
+                "rawQuery": true,
+                "rawSql": "SELECT city, prompt, completion, submitted_at,generated_at FROM messages ORDER BY generated_at DESC LIMIT 50;",
+                "refId": "A",
+                "sql": {
+                  "columns": [
+                    {
+                      "parameters": [],
+                      "type": "function"
+                    }
+                  ],
+                  "groupBy": [
+                    {
+                      "property": {
+                        "type": "string"
+                      },
+                      "type": "groupBy"
+                    }
+                  ],
+                  "limit": 50
+                }
+              }
+            ],
+            "title": "What can you visit ?",
+            "transparent": true,
+            "type": "table"
           }
         ],
+        "refresh": "30s",
         "schemaVersion": 39,
         "tags": [],
         "templating": {
@@ -1200,7 +1353,7 @@ data:
         "timepicker": {},
         "timezone": "browser",
         "title": "TravelGPT",
-        "uid": "fdgr74zqhvwn4a",
-        "version": 22,
+        "uid": "meetup",
+        "version": 15,
         "weekStart": ""
       }
