@@ -66,18 +66,6 @@ environments:
       - consumer_autoscaling_cpu: 70
       - keda_enabled: true
 
-  purge:
-    values:
-      - generator_interval: "1s"
-      - generator_replica: 0
-      - api_autoscaling_enabled: true
-      - api_replica: 10
-      - api_autoscaling_memory: 70
-      - consumer_autoscaling_enabled: false
-      - consumer_replica: 1
-      - consumer_autoscaling_cpu: 70
-      - keda_enabled: true
-
 ---
 # Build the AMQP connection URL used in producer and consumer
 {{- $username := fetchSecretValue (printf "secretref+k8s://v1/Secret/%s/mq-default-user/username" .Namespace) }}
@@ -90,13 +78,25 @@ releases:
 
 - name: benthos-generator
   chart: benthos/benthos
-  values: [ ./values-benthos-generator.yml ]
   version: 2.1.1
-  set:
-  - name: config.input.generate.interval
-    value: {{ .Environment.Values.generator_interval }}
-  - name: deployment.replicaCount
-    value: {{ .Environment.Values.generator_replica }}
+  values:
+    - ./values-benthos-generator.yml
+    - extraVolumes:
+        - name: data
+    - extraVolumeMounts:
+        - name: data
+          mountPath: /data
+    - initContainers:
+        - name: fetchdata
+          image: nixery.dev/shell/curl/jq
+          command:
+          - sh
+          - -c
+          - |
+            curl -fsSL https://gitlab.com/xavki/tutoriels-python/-/raw/master/cities.json | jq -c .[] > /data/cities.jsonl
+          volumeMounts:
+            - name: data
+              mountPath: /data
 
 - name: benthos-api
   chart: benthos/benthos

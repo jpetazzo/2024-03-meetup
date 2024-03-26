@@ -2,16 +2,23 @@
 #  release: promstack
 config: 
   input:
-    generate: 
-      interval: "1s"
-      mapping: |
-        let cities = ["Paris","Berlin","NewYork","Pékin"]
-        let city_id = random_int(min: 0, max: 3)
-        root.city = $cities.index($city_id)
+    #generate:
+    #  interval: "1s"
+    #  mapping: |
+    #    let cities = ["Paris","Berlin","NewYork","Pékin"]
+    #    let city_id = random_int(min: 0, max: 3)
+    #    root.city = $cities.index($city_id)
+    subprocess:
+      name: shuf
+      args: [ /data/cities.jsonl ]
     processors:
       - log:
           level: INFO
           fields_mapping: "root = this"
+      - mapping: "root.city = this.official_name"
+      - sleep:
+          duration: "1s"
+
   output:
     http_client:
       url: "http://benthos-api/post"
