@@ -1,15 +1,49 @@
-First, install the operators and other singleton components (the stuff that only needs to be installed once, like the local volume provisioner). They'are all declared in the top-level helmfile:
+**Install operators:**
 
 ```
 helmfile sync
 ```
 
-Then, install the database, message queue, and benthos producers and consumers. Note that these are going to be installed in the current namespace:
+**Create namespace:**
+
+```
+NAMESPACE=app
+kubectl create namespace $NAMESPACE
+kns $NAMESPACE
+```
+
+**Deploy database, message queue, and textsynth:**
 
 ```
 kubectl apply -f postgres
 kubectl apply -f rabbitmq
-helmfile sync -f benthos/helmfile.yaml
+kubectl apply -f textsynth
+# Ignore the warning about the Compose file :)
 ```
 
-Enjoy!
+**Run Benthos processors:**
+
+```
+helmfile sync -f benthos/helmfile.yaml -n $NAMESPACE
+```
+
+**Check queue:**
+
+```
+kubectl exec mq-server-0 -- rabbitmqctl list_queues
+```
+
+**Check database:**
+
+```
+kubectl cnpg psql db -- messages -c "select * from messages;"
+```
+
+**Scale up textsynth and consumer:**
+
+```
+kubectl scale deployment consumer,textsynth --replicas 20
+```
+
+Wait for nodes to come up and queue to resorb a bit.
+
