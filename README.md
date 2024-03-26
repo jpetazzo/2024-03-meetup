@@ -88,3 +88,14 @@ kubectl get so,hpa,deploy
 ```
 
 After a while the number of nodes should also go down on its own.
+
+**Scale to zero:**
+
+```
+kubectl scale deployment benthos-generator --replicas=0
+```
+
+If we shutdown the generator, eventually, the queue will
+drain and then, the autoscaler should scale down the consumer
+to zero as well.
+
