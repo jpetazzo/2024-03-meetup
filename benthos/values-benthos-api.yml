@@ -15,7 +15,7 @@ config:
       - switch:
         - check: '@http_server_request_path == "/post"'
           processors:
-            - mapping: |            
+            - mapping: |
                 root.submitted_at = now()
                 root.city = this.city
                 root.prompt = "If you go to " + root.city + ", I suggest that you"
@@ -40,17 +40,6 @@ resources:
     cpu: 0.1
     memory: 1G
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 15
-  metrics:
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
 metrics:
   prometheus:
     add_process_metrics: true
