@@ -22,8 +22,13 @@ spec:
             submitted_at TIMESTAMP,
             generated_at TIMESTAMP
           );
-
-  # Require 1Gi of space
+  resources:
+    requests:
+      memory: 1G
+      cpu: 0.1
+    limits:
+      memory: 1G
+      cpu: 1
   storage:
     size: 1Gi
 ---
@@ -31,8 +36,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   name: db
-  labels:
-    release: promstack
 spec:
   selector:
     matchLabels:

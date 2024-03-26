@@ -13,15 +13,40 @@ repositories:
   url: https://kubernetes-sigs.github.io/metrics-server/
 
 releases:
-#- name: local-path-provisioner
-#  namespace: local-path-provisioner
-#  chart: local-path-provisioner/local-path-provisioner
-#  set:
-#  - name: storageClass.defaultClass
-#    value: true
+{{ if false }}
+- name: local-path-provisioner
+  namespace: local-path-provisioner
+  chart: local-path-provisioner/local-path-provisioner
+  set:
+  - name: storageClass.defaultClass
+    value: true
+{{ end }}
+{{ range tuple "prom-system" "cnpg-system" }}
+- name: {{ . }}-limitrange
+  namespace: {{ . }}
+  chart: ./limitrange
+{{ end }}
 - name: promstack
   namespace: prom-system
   chart: prometheus-community/kube-prometheus-stack
+  values:
+    - grafana:
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 1G
+          limits:
+            cpu: 1
+            memory: 1G
+    - prometheus:
+        prometheusSpec:
+          resources:
+            requests:
+              cpu: 100m # OpenAPI schema requires integer or string
+              memory: 1G
+            limits:
+              cpu: 1
+              memory: 1G
 - name: keda
   namespace: keda-system
   chart: kedacore/keda
@@ -35,4 +60,4 @@ releases:
   namespace: kube-system
   chart: metrics-server/metrics-server
   values:
-  - args: [ "--kubelet-insecure-tls" ]
+    - args: [ "--kubelet-insecure-tls" ]
