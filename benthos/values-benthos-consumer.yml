@@ -21,7 +21,7 @@ config:
             root.temperature = 0.8
           processors:
             - http:
-                url: http://textsynth:8020/v1/engines/mistral_7B_q4/completions
+                url: http://SERVICE:PORT/v1/engines/MODEL/completions
                 verb: POST
                 timeout: 300s
           result_map: |
