@@ -98,28 +98,28 @@ releases:
                   cpu: 64
   {{ end }}
 
-{{ if false }}
-- name: keda-consumer
-  chart: ./chart/keda
-  set:
-  - name: triggerURI
-    value: {{ $amqpurl }}
-  - name: queueName
-    value: "q1"
-  - name: minReplicaCount
-    value: 1
-  - name: maxReplicaCount
-    value: 25
-  - name: targetName
-    value: "benthos-consumer"
-  - name: pollingInterval
-    value: 30
-  - name: cooldownPeriod
-    value: 10
-  - name: triggerMode
-    value: "QueueLength"
-  - name: triggerValue
-    value: 1000
+{{ if .Environment.Values.textsynth_sidecar }}
+- name: keda-autoscaler
+  chart: ./keda
+  strategicMergePatches:
+    - apiVersion: keda.sh/v1alpha1
+      kind: ScaledObject
+      metadata:
+        name: benthos-consumer
+        namespace: {{ .Namespace }}
+      spec:
+        pollingInterval: 30
+        cooldownPeriod: 10
+        minReplicaCount: 0 
+        maxReplicaCount: 100 
+        triggers:
+          - type: rabbitmq
+            metadata:
+              protocol: auto
+              queueName: q1
+              mode: QueueLength # QueueLength or MessageRate
+              value: "10"
+              host: {{ $amqpurl }}
 {{ end }}
 
 # Note: it is mandatory to pass the namespace to helmfile!
