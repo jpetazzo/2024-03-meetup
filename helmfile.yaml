@@ -35,6 +35,7 @@ releases:
 - name: promstack
   namespace: prom-system
   chart: prometheus-community/kube-prometheus-stack
+  version: 57.1.1
   values:
     - grafana:
         resources:
