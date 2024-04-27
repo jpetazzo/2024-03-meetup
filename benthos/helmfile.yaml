@@ -1,3 +1,6 @@
+{{ if not .Namespace }}
+{"\n\nIt is mandatory to pass the namespace to helmfile:\nhelmfile -n app [-e sidecar]\n\n": "" }
+{{ end }}
 ---
 repositories:
 - name: benthos
@@ -121,7 +124,3 @@ releases:
               value: "10"
               host: {{ $amqpurl }}
 {{ end }}
-
-# Note: it is mandatory to pass the namespace to helmfile!
-# E.g.:
-# helmfile -n app [-e sidecar]
